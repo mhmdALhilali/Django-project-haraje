@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}{{ advertisement.title }} - يمن حراج{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            {% if advertisement.image %}
+                <img src="{{ advertisement.image.url }}" class="card-img-top" style="max-height: 400px; object-fit: contain;">
+            {% endif %}
+            
+            <div class="card-body">
+                <h1 class="card-title">{{ advertisement.title }}</h1>
+                <div class="price mb-3">{{ advertisement.price }} ريال يمني</div>
+                
+                <div class="row mb-3">
+                    <div class="col-sm-6">
+                        <strong>الفئة:</strong> {{ advertisement.category.name }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>المحافظة:</strong> {{ advertisement.governorate.name }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>الحالة:</strong> {{ advertisement.get_condition_display }}
+                    </div>
+                    <div class="col-sm-6">
+                        <strong>تاريخ النشر:</strong> {{ advertisement.created|date:"d/m/Y H:i" }}
+                    </div>
+                </div>
+                
+                <h5>وصف المنتج:</h5>
+                <p class="card-text">{{ advertisement.description|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-user"></i> معلومات البائع</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>البائع:</strong> {{ advertisement.seller.username }}</p>
+                <p><strong>رقم الهاتف:</strong> {{ advertisement.contact_phone }}</p>
+                
+                {% if user.is_authenticated and user != advertisement.seller %}
+                    <a href="{% url 'marketplace:send_message' advertisement.id %}" 
+                       class="btn btn-primary btn-block">
+                        <i class="fas fa-envelope"></i> إرسال رسالة
+                    </a>
+                {% elif user == advertisement.seller %}
+                    <a href="{% url 'marketplace:advertisement_edit' advertisement.id %}" 
+                       class="btn btn-warning btn-block">
+                        <i class="fas fa-edit"></i> تعديل الإعلان
+                    </a>
+                {% else %}
+                    <p class="text-muted">يجب تسجيل الدخول للتواصل مع البائع</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% if related_ads %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-tags"></i> إعلانات مشابهة</h5>
+                </div>
+                <div class="card-body">
+                    {% for ad in related_ads %}
+                        <div class="d-flex mb-2 border-bottom pb-2">
+                            <div class="flex-shrink-0">
+                                {% if ad.image %}
+                                    <img src="{{ ad.image.url }}" width="60" height="60" class="rounded">
+                                {% else %}
+                                    <div class="bg-light rounded d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                        <i class="fas fa-image text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <a href="{{ ad.get_absolute_url }}" class="text-decoration-none">
+                                    <h6 class="mb-1">{{ ad.title|truncatechars:40 }}</h6>
+                                </a>
+                                <div class="small text-success">{{ ad.price }} ريال</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

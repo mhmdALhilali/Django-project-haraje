@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}
+    {% if category %}{{ category.name }} - يمن حراج{% else %}يمن حراج - سوق اليمن{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-search"></i> البحث</h5>
+            </div>
+            <div class="card-body">
+                <form method="get">
+                    {{ search_form.as_p }}
+                    <button type="submit" class="btn btn-primary btn-sm">
+                        <i class="fas fa-search"></i> بحث
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5><i class="fas fa-th-large"></i> الفئات</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="{% url 'marketplace:advertisement_list' %}" 
+                       class="list-group-item list-group-item-action {% if not category %}active{% endif %}">
+                        جميع الفئات
+                    </a>
+                    {% for c in categories %}
+                        <a href="{{ c.get_absolute_url }}" 
+                           class="list-group-item list-group-item-action {% if category.slug == c.slug %}active{% endif %}">
+                            {{ c.name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>
+                {% if category %}{{ category.name }}{% else %}جميع الإعلانات{% endif %}
+                {% if query %} - نتائج البحث عن "{{ query }}"{% endif %}
+            </h2>
+            {% if user.is_authenticated %}
+                <a href="{% url 'marketplace:advertisement_create' %}" class="btn btn-success">
+                    <i class="fas fa-plus"></i> أضف إعلان
+                </a>
+            {% endif %}
+        </div>
+
+        {% if advertisements %}
+            <div class="row">
+                {% for advertisement in advertisements %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            {% if advertisement.image %}
+                                <img src="{{ advertisement.image.url }}" class="card-img-top" style="height: 200px; object-fit: cover;">
+                            {% else %}
+                                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">{{ advertisement.title|truncatechars:50 }}</h5>
+                                <p class="card-text text-muted small">{{ advertisement.description|truncatechars:80 }}</p>
+                                <div class="mt-auto">
+                                    <div class="price mb-2">{{ advertisement.price }} ريال</div>
+                                    <div class="small text-muted mb-2">
+                                        <i class="fas fa-map-marker-alt"></i> {{ advertisement.governorate.name }}
+                                        <br>
+                                        <i class="fas fa-clock"></i> {{ advertisement.created|date:"d/m/Y" }}
+                                    </div>
+                                    <a href="{{ advertisement.get_absolute_url }}" class="btn btn-primary btn-sm">
+                                        عرض التفاصيل
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- تقسيم الصفحات -->
+            {% if advertisements.has_other_pages %}
+                <nav>
+                    <ul class="pagination justify-content-center">
+                        {% if advertisements.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ advertisements.previous_page_number }}">السابق</a>
+                            </li>
+                        {% endif %}
+                        
+                        {% for i in advertisements.paginator.page_range %}
+                            {% if advertisements.number == i %}
+                                <li class="page-item active">
+                                    <span class="page-link">{{ i }}</span>
+                                </li>
+                            {% else %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                                </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if advertisements.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ advertisements.next_page_number }}">التالي</a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4>لا توجد إعلانات</h4>
+                <p class="text-muted">لم نجد أي إعلانات تطابق بحثك.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
